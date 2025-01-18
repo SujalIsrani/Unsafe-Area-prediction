@@ -1,0 +1,198 @@
+/* Default styles for mobile-first design */
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column; /* Stack elements vertically on small screens */
+    height: 100vh; /* Full height for the viewport */
+    overflow: hidden; /* Prevent body scrolling */
+    background-color: #f0f0f5;
+}
+
+#map {
+    flex: 0 0 400px; /* Fixed height for the map */
+    height: 500px; /* Set height for the map on small screens */
+}
+
+#panel {
+    flex: 1; /* Takes the remaining height */
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto; /* Allow scrolling for the panel */
+    transition: width 0.3s; /* Smooth transition for width changes */
+}
+
+/* Media query for larger screens */
+@media (min-width: 768px) {
+    body {
+        flex-direction: row; /* Arrange elements in a row on larger screens */
+    }
+
+    #map {
+        flex: 1; /* Map takes remaining space */
+        height: 100vh; /* Full height for the map */
+    }
+
+    #panel {
+        width: 250px; /* Smaller width for the panel on laptops/desktops */
+        height: 100vh; /* Full height for the panel */
+        position: fixed; /* Make the panel fixed on the left side */
+        left: 0; /* Panel moves to the left side */
+        top: 0;
+        z-index: 1000; /* Keep it on top */
+        background-color: #ffffff;
+        border-right: 1px solid #ddd; /* Add a border on the right */
+    }
+}
+
+/* Additional media queries for very large screens */
+@media (min-width: 1200px) {
+    #panel {
+        width: 300px; /* Further reduce panel width on very large screens */
+    }
+}
+
+/* Styles for headings */
+h2, h3, h4 {
+    color: #333;
+    margin-bottom: 10px; /* Reduced margin for smaller screens */
+}
+
+h2 {
+    font-size: 1.5em; /* Larger heading on smaller screens */
+}
+
+h3 {
+    font-size: 1.25em;
+}
+
+h4 {
+    font-size: 1em; /* Smaller heading */
+}
+
+/* List styles */
+#services-list {
+    list-style: none;
+    padding: 0;
+}
+
+#services-list li {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.service-type {
+    font-weight: bold;
+    color: #007BFF;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.service-distance {
+    display: block;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.get-directions {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.get-directions:hover {
+    background-color: #0056b3;
+}
+
+/* Button styles */
+#add-unsafe-area-btn,
+#submit-unsafe-area {
+    width: 100%; /* Full width for buttons */
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#add-unsafe-area-btn:hover,
+#submit-unsafe-area:hover {
+    background-color: #0056b3;
+}
+
+/* Form styles */
+#add-unsafe-form {
+    display: none;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#add-unsafe-form input, 
+#add-unsafe-form select {
+    width: 100%; /* Full width for inputs and selects */
+    padding: 12px; /* Slightly increase padding for better touch targets */
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Tooltip and popup styles */
+.leaflet-tooltip {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.leaflet-popup-content {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Safety score styles */
+.safety-score {
+    font-weight: bold;
+    font-size: 10px;
+    color: #FFD700;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Clusters control styles */
+.leaflet-control-clusters {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+.leaflet-control-clusters label {
+    margin-left: 5px;
+}
+
+/* Responsive image styles */
+img {
+    max-width: 100%; /* Ensure images don’t overflow their containers */
+    height: auto; /* Maintain aspect ratio */
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#00957B">
+    <title>Safety Map - Emergency Services</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.8.0/ml5.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="icon.jpg">
+</head>
+<body>
+    <div id="map"></div>
+    <div id="panel">
+        <h2>Status: <span id="status">Checking...</span></h2>
+        <h3>Nearby Services</h3>
+        <ul id="services-list">
+            <li>
+                <span class="service-type">Service Name</span>
+                <span class="service-distance">Distance: 0.5 km</span>
+                <a href="#" class="get-directions">Get Directions</a> <!-- Get Directions button -->
+            </li>
+            <!-- More services can be added here dynamically -->
+        </ul>
+        <button id="add-unsafe-area-btn">Add Unsafe Area</button>
+        <div id="add-unsafe-form">
+            <h4>Add New Unsafe Area</h4>
+            <input type="text" id="region-name" placeholder="Region Name" required>
+            <input type="number" id="latitude" placeholder="Latitude" step="any" required>
+            <input type="number" id="longitude" placeholder="Longitude" step="any" required>
+            <select id="lighting" required>
+                <option value="">Select Lighting</option>
+                <option value="None">None</option>
+                <option value="Few">Few</option>
+                <option value="Moderate">Moderate</option>
+            </select>
+            <select id="openness" required>
+                <option value="">Select Openness</option>
+                <option value="Not open">Not open</option>
+                <option value="Partially open">Partially open</option>
+                <option value="Mostly open">Mostly open</option>
+            </select>
+            <select id="visibility" required>
+                <option value="">Select Visibility</option>
+                <option value="No eyes">No eyes</option>
+                <option value="Few eyes">Few eyes</option>
+            </select>
+            <select id="public-transport" required>
+                <option value="">Select Public Transport</option>
+                <option value="Nearby">Nearby</option>
+                <option value="Unavailable">Unavailable</option>
+                <option value="Distant">Distant</option>
+            </select>
+            <select id="security" required>
+                <option value="">Select Security</option>
+                <option value="None">None</option>
+                <option value="Minimal">Minimal</option>
+                <option value="Moderate">Moderate</option>
+            </select>
+            <select id="people" required>
+                <option value="">Select People</option>
+                <option value="Deserted">Deserted</option>
+                <option value="Few people">Few people</option>
+                <option value="Some crowd">Some crowd</option>
+            </select>
+            <input type="number" id="safety-score" placeholder="Safety Score" step="0.1" min="0" max="5" required>
+            <button id="submit-unsafe-area">Submit</button>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
