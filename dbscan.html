@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Women Safety Hotspots - DBSCAN Visualization</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            line-height: 1.6;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+        }
+        .legend i {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Women Safety Hotspots - DBSCAN Visualization</h2>
+
+<!-- Filter Controls -->
+<div style="padding: 10px;">
+    <button onclick="toggleHeatmap()">Toggle Heatmap</button>
+
+    <label for="scoreFilter">Min Safety Score:</label>
+    <input type="range" id="scoreFilter" min="0" max="10" step="0.1" value="0" oninput="filterMap()" />
+
+    <label for="transportFilter">Transport Access:</label>
+    <select id="transportFilter" onchange="filterMap()">
+        <option value="all">All</option>
+        <option value="Unavailable">Unavailable</option>
+        <option value="Distant">Distant</option>
+        <option value="Nearby">Nearby</option>
+        <option value="Very Close">Very Close</option>
+    </select>
+</div>
+
+<!-- Map container -->
+<div id="map"></div>
+
+<script>
+let map = L.map('map').setView([19.0760, 72.8777], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+let clusterMarkers = [];
+let heatmapLayer;
+let rawData = [];
+
+let clusterColors = {
+    "-1": 'gray',
+    0: 'red',
+    1: 'blue',
+    2: 'green',
+    3: 'orange',
+    4: 'purple'
+};
+
+let clusterAverages = {};
+
+// Load cluster averages
+fetch('dbscan_cluster_averages.json')
+    .then(res => res.json())
+    .then(avg => {
+        clusterAverages = avg;
+    });
+
+// Load CSVs
+Promise.all([
+    fetch('dbscan_women_safety_output.csv').then(res => res.text()),
+    fetch('RandomLocations.csv').then(res => res.text())
+]).then(([clusterCSV, fullCSV]) => {
+    const rows = clusterCSV.trim().split('\n').slice(1);
+    const originals = fullCSV.trim().split('\n').slice(1);
+
+    for (let i = 0; i < rows.length; i++) {
+        const cols = rows[i].split(',');
+        const orig = originals[i].split(',');
+
+        let point = {
+            lat: parseFloat(cols[0]),
+            lon: parseFloat(cols[1]),
+            cluster: parseInt(cols[2]),
+            score: parseFloat(cols[3]),
+            transport: (orig[5]),  
+            lighting: parseInt(orig[3]),
+            openness: parseInt(orig[4]),
+            security: parseInt(orig[7])
+        };
+        rawData.push(point);
+    }
+
+    renderClusterView();
+    addLegend();
+});
+
+// Heatmap toggle
+function toggleHeatmap() {
+    if (heatmapLayer && map.hasLayer(heatmapLayer)) {
+        renderClusterView();
+    } else {
+        renderHeatmap();
+    }
+}
+
+// Filters
+function passesFilters(p) {
+    let minScore = parseFloat(document.getElementById('scoreFilter').value);
+    let selectedTransport = document.getElementById('transportFilter').value;
+    return (
+        p.score >= minScore &&
+        (selectedTransport === 'all' || p.transport === parseInt(selectedTransport))
+    );
+}
+
+
+function isHighRisk(p) {
+    return p.lighting <= 1 && p.security <= 1 && p.openness <= 1;
+}
+
+function clearMap() {
+    clusterMarkers.forEach(m => map.removeLayer(m));
+    if (heatmapLayer) map.removeLayer(heatmapLayer);
+    clusterMarkers = [];
+}
+
+function renderClusterView() {
+    clearMap();
+    rawData.forEach(p => {
+        if (!passesFilters(p)) return;
+
+        const marker = L.circleMarker([p.lat, p.lon], {
+            radius: 6,
+            fillColor: clusterColors[p.cluster] || 'black',
+            color: '#000',
+            weight: 1,
+            fillOpacity: 0.8
+        });
+
+        let label = p.cluster === -1 ? "Outlier" : `Cluster ${p.cluster + 1}`;
+        let popup = `<b>${label}</b><br>Score: ${p.score}`;
+        if (isHighRisk(p)) popup += "<br>🚨 <b>High Risk Area</b>";
+
+        marker.bindTooltip(popup);
+        marker.addTo(map);
+        clusterMarkers.push(marker);
+    });
+}
+
+function renderHeatmap() {
+    clearMap();
+    let heatPoints = rawData
+        .filter(p => passesFilters(p))
+        .map(p => [p.lat, p.lon, p.score / 10]);
+    heatmapLayer = L.heatLayer(heatPoints, { radius: 25, blur: 15 }).addTo(map);
+}
+
+function filterMap() {
+    if (heatmapLayer && map.hasLayer(heatmapLayer)) {
+        renderHeatmap();
+    } else {
+        renderClusterView();
+    }
+}
+
+function addLegend() {
+    const legend = L.control({ position: "bottomright" });
+    legend.onAdd = function (map) {
+        let div = L.DomUtil.create('div', 'legend');
+        div.innerHTML += "<strong>Cluster Legend</strong><br>";
+        div.innerHTML += `<i style="background: red"></i> Cluster 1 - Unsafe<br>Avg: ${clusterAverages[0] || 'N/A'}<br>`;
+        div.innerHTML += `<i style="background: blue"></i> Cluster 2 - Moderate<br>Avg: ${clusterAverages[1] || 'N/A'}<br>`;
+        div.innerHTML += `<i style="background: green"></i> Cluster 3 - Safe<br>Avg: ${clusterAverages[2] || 'N/A'}<br>`;
+        div.innerHTML += `<i style="background: gray"></i> Outlier - Isolated<br>`;
+        return div;
+    };
+    legend.addTo(map);
+}
+</script>
+
+</body>
+</html>

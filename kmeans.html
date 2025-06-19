@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women Safety Hotspots - K-means Cluster Visualization</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            line-height: 1.6;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+        }
+        .legend i {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Women Safety Hotspots - K-MEANS Cluster Visualization</h1>
+<div id="map"></div>
+
+<script>
+    var map = L.map('map').setView([19.0760, 72.8777], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var clusterColors = {
+        0: 'red',
+        1: 'blue',
+        2: 'green'
+    };
+
+    let clusterAverages = {};
+
+    // First load cluster average JSON
+    fetch('cluster_averages.json')
+        .then(response => response.json())
+        .then(avgData => {
+            clusterAverages = avgData;
+
+            // Then load the actual CSV data
+            return fetch('new_women_safety_clustered_output.csv');
+        })
+        .then(response => response.text())
+        .then(data => {
+            const rows = data.split('\n').slice(1);
+            rows.forEach(row => {
+                const cols = row.split(',');
+                if (cols.length < 4) return;
+
+                const lat = parseFloat(cols[0]);
+                const lon = parseFloat(cols[1]);
+                const cluster = parseInt(cols[2]);
+                const score = parseFloat(cols[3]);
+
+                if (isNaN(lat) || isNaN(lon) || isNaN(score) || isNaN(cluster)) return;
+
+                const marker = L.circle([lat, lon], {
+                    color: clusterColors[cluster],
+                    fillColor: clusterColors[cluster],
+                    fillOpacity: 0.5,
+                    radius: 200
+                }).addTo(map);
+
+                marker.bindTooltip(
+                    `Cluster ${cluster + 1}<br><strong>Weighted Safety Score:</strong> ${score.toFixed(2)}`,
+                    { direction: "top", permanent: false }
+                );
+            });
+
+            // Now add the legend with averages
+            var legend = L.control({ position: "bottomright" });
+            legend.onAdd = function (map) {
+                var div = L.DomUtil.create('div', 'legend');
+                div.innerHTML += "<strong>Cluster Legend</strong><br>";
+                div.innerHTML += `<i style="background: red"></i> Cluster 1 - <b>Probably Unsafe</b><br>Avg Score: ${clusterAverages[0]}<br><br>`;
+                div.innerHTML += `<i style="background: blue"></i> Cluster 2 - <b>Moderate</b><br>Avg Score: ${clusterAverages[1]}<br><br>`;
+                div.innerHTML += `<i style="background: green"></i> Cluster 3 - <b>Probably Safe</b><br>Avg Score: ${clusterAverages[2]}<br>`;
+                return div;
+            };
+            legend.addTo(map);
+        });
+</script>
+
+
+</body>
+</html>
